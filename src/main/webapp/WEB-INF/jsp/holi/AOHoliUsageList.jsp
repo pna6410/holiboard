@@ -1,0 +1,113 @@
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+
+
+<script language="javascript">
+	$(document).ready(function(){
+		$("#gridList1").jqGrid({			
+		   	url:"${pageContext.request.contextPath}/holi/AOHoliUsageList.ajax",
+		   	mtype: "POST",
+			datatype: "json",
+			postData : {'years': '${yearList.get(0).years}'},
+			jsonReader : {
+				root: "resultList",
+				repeatitems: false
+			},
+			loadtext : '조회 중 입니다.',
+			shrinkToFit:false,
+			colModel:[
+				{label:'성명', name:'name', width:80, align:"center"},
+				{label:'전체일수', name:'totalHoli', width:100, align:"center"},
+				{label:'사용일수', name:'usedHoli', width:100, align:"center"},
+				{label:'01월', name:'m1', width:60, align:"center"},
+				{label:'02월', name:'m2', width:60, align:"center"},
+				{label:'03월', name:'m3', width:60, align:"center"},
+				{label:'04월', name:'m4', width:60, align:"center"},
+				{label:'05월', name:'m5', width:60, align:"center"},
+				{label:'06월', name:'m6', width:60, align:"center"},
+				{label:'07월', name:'m7', width:60, align:"center"},
+				{label:'08월', name:'m8', width:60, align:"center"},
+				{label:'09월', name:'m9', width:60, align:"center"},
+				{label:'10월', name:'m10', width:60, align:"center"},
+				{label:'11월', name:'m11', width:60, align:"center"},
+				{label:'12월', name:'m12', width:60, align:"center"}
+		   	],
+		   	loadonce: true,
+		   	sortable : true,
+		   	showpage : false,
+            rownumbers : true,
+		   	rowNum: 9007199254740992,
+		   	width: 800,
+            height: 450,
+		   	beforeRequest : function () {loadingOn();},
+		   	loadComplete: function (data) {if($('#gridList1').getGridParam("records")== 0) alert('조회된 내용이 없습니다.');loadingOff();}
+		});
+
+		$("#gridList1").setGridWidth($('#content').width()-25, true);
+				
+	});
+
+	$(window).bind('resize', function() {
+		$("#gridList1").setGridWidth($('#content').width()-25, true);
+	}).trigger('resize');
+
+	function goSearch() {
+		var formData = $('#searchForm').serializeArray();
+		$('#gridList1').clearGridData();
+		$('#gridList1').setGridParam({datatype : "json",
+			                          postData : formData
+			             }).trigger("reloadGrid");
+
+	}
+
+	function is_checked() {		  
+		  // 1. checkbox element를 찾습니다.
+		  const checkbox = document.getElementById('checkbox');
+		  // 2. checked 속성을 체크합니다.
+		  const is_checked = checkbox.checked;
+		  	  
+		  $('[id=searchForm] #except').val(is_checked);
+		  
+		}
+	
+</script>
+
+<div class="float-left w-100">
+	<div class="page-header">
+		<h4><i class="bi bi-info-square-fill"></i> 연도별 운영자별 휴가 사용 내역</h4>
+	</div>
+	
+	<p></p>
+	<form class="form-inline" id="searchForm" name="searchForm">
+   		<div class="input-group mb-2 mr-sm-2">
+     		<div class="input-group-prepend">
+       			<div class="input-group-text">년도</div>
+     		</div>     		
+  		    <select class="form-control" id="years" name="years" style="width:150px">  		      		    	
+  		    	<c:forEach var="yearList" items="${yearList}" varStatus="status">
+					<option value="${yearList.years}">${yearList.years}</option>
+				</c:forEach>
+  		    </select>
+  		    
+   		</div>
+   		<div class="input-group mb-2 mr-sm-2">
+     		<div class="input-group-prepend">
+       			<div class="input-group-text">
+       				<label for="checkbox">경조, 공가, 병가, 교육 포함, 대체휴가, 출장 &nbsp;</label>
+       				<input type="checkbox" id="checkbox" name="checkbox" onclick="is_checked()">
+       				<input type="hidden" id="except" name="except" value="false">
+       			</div>
+     		</div>
+   		</div>
+		<button type="button" class="btn btn-sm btn-info mb-2" onclick="javascript:goSearch()"><i class="bi bi-search"></i> 조회</button>
+	</form>
+	<p></p>
+		
+	<table id="gridList1"></table>
+	
+	<p></p>		
+	
+</div>

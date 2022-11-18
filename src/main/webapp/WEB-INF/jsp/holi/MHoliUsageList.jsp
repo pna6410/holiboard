@@ -1,0 +1,113 @@
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+
+
+<link href="${pageContext.request.contextPath}/css/fullcalendarmain.css" rel="stylesheet">
+<script src="${pageContext.request.contextPath}/js/fullcalendarmain.js"></script>
+
+<script language="javascript">
+	var calendar
+	
+	const now = new Date();	// 현재 날짜 및 시간
+	const month = now.getMonth();
+	
+	document.addEventListener('DOMContentLoaded', function() {
+		$(function () {
+			var request  = $.ajax({
+				type: "GET",
+				url: "${pageContext.request.contextPath}/holi/calendar.do",
+				dataType : "json"
+			});
+		
+			request.done(function (data) {
+				console.log(data);
+			
+				var calendarEl = document.getElementById('calendar');
+				
+				calendar = new FullCalendar.Calendar(calendarEl, {
+					headerToolbar : {
+						left: 'prev', 
+                	    center: 'title',
+                    	right: 'next'
+					},
+					locale : 'ko', // 한국어 설정
+					height : '650px', // calendar 높이 설정					
+					expandRows : true, // 화면에 맞게 높이 재설정
+					dayMaxEvents: true, // 이벤트가 칸을 넘어가면 +n 형태로 띄워줌
+					fixedWeekCount: false, // 필요한 만큼의 주만 나오도록 해줌
+					events: data // 이벤트 넣어줌
+	            });
+				calendar.render();
+			
+			});
+			
+			request.fail(function( jqXHR, textStatus ) {
+        		alert( "Request failed: " + textStatus );
+    		});
+			
+		});
+		
+		$('[id=searchForm] #months').val(month + 1);
+	});
+	
+	function goSearch() {		
+		var year = $('[id=searchForm] #years').val();
+		var month = $('[id=searchForm] #months').val();
+		if (parseInt(month, 10) < 10) month = '0' + month;
+		var date = year + '-' + month;
+		calendar.gotoDate(date);	
+		console.log(date);		
+	}
+	
+	function goReset() {
+		$('[id=searchForm]').each(function() {
+			this.reset();
+		});
+		$('[id=searchForm] #months').val(month + 1);
+		goSearch();
+	}
+	
+</script>
+
+<div class="float-left w-100">
+	<div class="page-header">
+		<h4><i class="bi bi-info-square-fill"></i> 월별 휴가 사용 내역</h4>
+	</div>
+	
+	<p></p>
+	<form class="form-inline" id="searchForm" name="searchForm">
+   		<div class="input-group mb-2 mr-sm-2">
+     		<div class="input-group-prepend">
+       			<div class="input-group-text">년도</div>
+     		</div>     		
+  		    <select class="form-control" id="years" name="years" style="width:150px">  		      		    	
+  		    	<c:forEach var="yearList" items="${yearList}" varStatus="status">
+					<option value="${yearList.years}">${yearList.years}</option>
+				</c:forEach>
+  		    </select>
+  		    
+   		</div>
+   		<div class="input-group mb-2 mr-sm-2">
+     		<div class="input-group-prepend">
+       			<div class="input-group-text">월</div>
+     		</div>     		
+  		    <select class="form-control" id="months" name="months" style="width:150px">  		      		    	
+  		    	<c:forEach var="monthList" items="${monthList}" varStatus="status">
+					<option value="${monthList.months}">${monthList.months}</option>
+				</c:forEach>
+  		    </select>  		    
+   		</div>
+		<button type="button" class="btn btn-sm btn-info mb-2" onclick="javascript:goSearch()"><i class="bi bi-search"></i> 조회 </button>
+		&nbsp;
+		<button type="button" class="btn btn-sm btn-info mb-2" onclick="javascript:goReset()"> 초기화</button>
+	</form>
+	<p></p>
+		
+	<div id='calendar'></div>
+	<!--  style="float:center;width:1500px;" -->
+	<p></p>		
+	
+</div>

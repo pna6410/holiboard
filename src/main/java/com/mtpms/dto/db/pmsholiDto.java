@@ -1,0 +1,69 @@
+package com.mtpms.dto.db;
+
+import java.io.Serializable;
+
+public class pmsholiDto implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7662849672164726234L;
+	
+	private int holiNo;
+	private String pernNo;
+	private String holiDateFrom;
+	private String holiDateTo;
+	private double holiDays;
+	private String holiType;
+	private String holiEtc;
+		
+	public int getHoliNo() {
+		return holiNo;
+	}
+	public void setHoliNo(int holiNo) {
+		this.holiNo = holiNo;
+	}
+	public String getPernNo() {
+		return pernNo;
+	}
+	public void setPernNo(String pernNo) {
+		this.pernNo = pernNo;
+	}	
+	public String getHoliDateFrom() {
+		return holiDateFrom;
+	}
+	public void setHoliDateFrom(String holiDateFrom) {
+		this.holiDateFrom = holiDateFrom;
+	}
+	public String getHoliDateTo() {
+		return holiDateTo;
+	}
+	public void setHoliDateTo(String holiDateTo) {
+		this.holiDateTo = holiDateTo;
+	}
+	public double getHoliDays() {
+		return holiDays;
+	}
+	public void setHoliDays(double holiDays) {
+		this.holiDays = holiDays;
+	}
+	public String getHoliType() {
+		return holiType;
+	}
+	public void setHoliType(String holiType) {
+		this.holiType = holiType;
+	}
+
+	public String getHoliEtc() {
+		return holiEtc;
+	}
+	public void setHoliEtc(String holiEtc) {
+		this.holiEtc = holiEtc;
+	}
+	
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+	
+
+}

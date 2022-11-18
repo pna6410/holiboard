@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="holiDaoSql">
+
+	<!-- 휴가 사용 내역 페이지 -->
+	<select id="selectHoliUsageList" parameterType="com.mtpms.dto.holiManageDto" resultType="com.mtpms.dto.holiManageDto">
+		select A.name, A.pern_no, B.holi_date_from, B.holi_date_to, B.holi_days, B.holi_type, C.code_nm holiTypeName, B.holi_etc, B.holi_no
+		from hpa100t A, holiday B, cmmn_code_manage C
+		where A.pern_no = B.pern_no
+		AND B.holi_type = C.code		
+			<if test="years != null and years != ''">
+				AND B.holi_date_from LIKE #{years} || '%'
+			</if>
+			<if test="name != null and name != ''">
+				AND A.name = #{name}
+			</if>
+		order by B.holi_date_from
+	</select>
+
+	<select id="selectNameList" resultType="com.mtpms.dto.holiManageDto">
+		SELECT A.name
+		from hpa100t A, holiday B
+		where A.pern_no = B.pern_no
+		group by A.name
+		order by A.name
+	</select>
+	
+	<select id="selectYearList" resultType="com.mtpms.dto.holiManageDto">
+		<![CDATA[
+		SELECT TO_CHAR(TO_CHAR(sysdate,'YYYY') -LEVEL + 1) AS years
+		FROM dual 
+		CONNECT BY LEVEL <= ((TO_CHAR(sysdate, 'YYYY') + 1) - 2010)
+		]]>
+	</select>
+	
+	<select id="selectHoliNameList" parameterType="com.mtpms.dto.holiManageDto" resultType="com.mtpms.dto.holiManageDto">
+		SELECT NAME, pern_no
+		FROM hpa100t
+		where 1=1	
+		AND retr_date is null		
+			<if test="name != null and name != ''">
+				AND name LIKE '%' || #{name} || '%'				
+			</if>
+		order by pern_no
+	</select>
+	
+	<select id="selectHoliTypeList" resultType="com.mtpms.dto.holiManageDto" parameterType="java.lang.String">
+		SELECT code_nm holiType, code
+		FROM cmmn_code_manage
+		WHERE GROUP_code = 'HODITYPE'
+	</select>
+	
+	<update id="pmsholiUsageUpdate" parameterType="com.mtpms.dto.db.pmsholiDto">
+		MERGE INTO HOLIDAY A USING DUAL
+			ON A.HOLI_NO = #{holiNo}
+			WHEN MATCHED THEN
+				UPDATE SET	A.PERN_NO = #{pernNo},
+							A.holi_date_from = #{holiDateFrom},
+							A.holi_date_to = #{holiDateTo},
+							A.holi_days = #{holiDays},
+							A.holi_Type = #{holiType},
+							A.holi_etc = #{holiEtc}
+			WHEN NOT MATCHED THEN
+				insert (holi_no, pern_no, holi_date_from, holi_date_to, holi_days, holi_Type, holi_etc)
+				values (holiseq.next_value, #{pernNo}, #{holiDateFrom}, #{holiDateTo}, #{holiDays}, #{holiType}, #{holiEtc})		
+	</update>
+	
+	<delete id="pmsholiUsageDelete" parameterType="com.mtpms.dto.db.pmsholiDto">
+		DELETE FROM holiday WHERE holi_no = #{holiNo}
+	</delete>
+	
+	<!-- 월별 휴가 사용 내역 페이지 -->
+	<select id="calendarList" resultType="com.mtpms.dto.holiManageDto">
+		<![CDATA[
+			SELECT A.NAME + '(' + c.code_nm + ')' as title, b.holi_date_from, TO_CHAR(TO_NUMBER(b.holi_date_to) + 1) as holi_date_to
+			FROM hpa100t a, holiday b, cmmn_code_manage c
+			WHERE A.pern_no = B.pern_no
+			AND B.holi_type = C.code
+		]]>
+	</select>
+	
+	<!-- 연도별 운영자별 휴가 사용 내역 페이지 -->
+	<select id="selectAOHoliUsageList" parameterType="com.mtpms.dto.holiManageDto" resultType="com.mtpms.dto.holiManageDto">
+		<![CDATA[ ]]>
+		SELECT a.name, 15 totalHoli, to_char(SUM(holi_days)) usedHoli,
+			to_char(SUM(DECODE(MONTH(holi_date_from), 1, holi_days))) m1,
+	    	to_char(SUM(DECODE(MONTH(holi_date_from), 2, holi_days))) m2,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 3, holi_days))) m3,
+       		to_char(SUM(DECODE(MONTH(holi_date_from), 4, holi_days))) m4,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 5, holi_days))) m5,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 6, holi_days))) m6,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 7, holi_days))) m7,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 8, holi_days))) m8,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 9, holi_days))) m9,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 10, holi_days))) m10,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 11, holi_days))) m11,
+        	to_char(SUM(DECODE(MONTH(holi_date_from), 12, holi_days))) m12       
+		FROM   hpa100t a, holiday b, cmmn_code_manage c
+		WHERE a.pern_no = b.pern_no
+		AND	b.holi_type = c.code
+			<if test="years != null and years != ''">
+				AND year(holi_date_from) = #{years}
+			</if>
+			<if test="except == false">
+				AND C.code IN ('TYPE01', 'TYPE02', 'TYPE03')
+			</if>
+		GROUP BY a.pern_no
+		order by a.pern_no
+	</select>
+	
+	<select id="selectMonthList" resultType="com.mtpms.dto.holiManageDto">
+		<![CDATA[
+			SELECT LEVEL AS months
+			FROM dual
+			CONNECT BY LEVEL <= 12
+		]]>
+	</select>
+	
+	
+</mapper>
