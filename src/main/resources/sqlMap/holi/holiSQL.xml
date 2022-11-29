@@ -15,7 +15,7 @@
 			<if test="name != null and name != ''">
 				AND A.name = #{name}
 			</if>
-		order by B.holi_date_from
+		order by B.holi_date_from desc
 	</select>
 
 	<select id="selectNameList" resultType="com.mtpms.dto.holiManageDto">
@@ -28,9 +28,9 @@
 	
 	<select id="selectYearList" resultType="com.mtpms.dto.holiManageDto">
 		<![CDATA[
-		SELECT TO_CHAR(TO_CHAR(sysdate,'YYYY') -LEVEL + 1) AS years
-		FROM dual 
-		CONNECT BY LEVEL <= ((TO_CHAR(sysdate, 'YYYY') + 1) - 2010)
+		SELECT TO_CHAR(TO_CHAR(sysdate,'YYYY') -LEVEL + 2) AS years
+		FROM dual
+		CONNECT BY LEVEL <= ((TO_CHAR(sysdate, 'YYYY') + 2) - 2010);
 		]]>
 	</select>
 	
@@ -56,14 +56,14 @@
 			ON A.HOLI_NO = #{holiNo}
 			WHEN MATCHED THEN
 				UPDATE SET	A.PERN_NO = #{pernNo},
-							A.holi_date_from = #{holiDateFrom},
-							A.holi_date_to = #{holiDateTo},
+							A.holi_date_from = replace(to_char(#{holiDateFrom}),'-',''),
+							A.holi_date_to = replace(to_char(#{holiDateTo}),'-',''),
 							A.holi_days = #{holiDays},
 							A.holi_Type = #{holiType},
 							A.holi_etc = #{holiEtc}
-			WHEN NOT MATCHED THEN
+			WHEN NOT MATCHED THEN			
 				insert (holi_no, pern_no, holi_date_from, holi_date_to, holi_days, holi_Type, holi_etc)
-				values (holiseq.next_value, #{pernNo}, #{holiDateFrom}, #{holiDateTo}, #{holiDays}, #{holiType}, #{holiEtc})		
+				values (holiseq.next_value, #{pernNo}, replace(to_char(#{holiDateFrom}),'-',''), replace(to_char(#{holiDateTo}),'-',''), #{holiDays}, #{holiType}, #{holiEtc})		
 	</update>
 	
 	<delete id="pmsholiUsageDelete" parameterType="com.mtpms.dto.db.pmsholiDto">
@@ -102,7 +102,7 @@
 			<if test="years != null and years != ''">
 				AND year(holi_date_from) = #{years}
 			</if>
-			<if test="except == false">
+			<if test="include == false">
 				AND C.code IN ('TYPE01', 'TYPE02', 'TYPE03')
 			</if>
 		GROUP BY a.pern_no
@@ -117,5 +117,11 @@
 		]]>
 	</select>
 	
-	
+	<select id="checkPosDay" parameterType="com.mtpms.dto.holiManageDto" resultType="boolean">
+		SELECT IF(COUNT(*) >= 1, 1, 0)
+		FROM holiday
+		WHERE pern_no = #{pernNo}
+		AND ((replace(to_char(#{holiDateFrom}),'-','') BETWEEN holi_date_from AND holi_date_to)
+		OR (replace(to_char(#{holiDateTo}),'-','') BETWEEN holi_date_from AND holi_date_to))	
+	</select>
 </mapper>
