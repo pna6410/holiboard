@@ -367,7 +367,7 @@
 					<c:forEach var="holiTypeList" items="${holiTypeList}" varStatus="status">
 						<option value="${holiTypeList.code}">${holiTypeList.holiType}</option>
 					</c:forEach>					
-				</select>				
+				</select>
 			</div>
 			&nbsp;
 			<div class="form-group required control-label">
